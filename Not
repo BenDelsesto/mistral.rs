@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  text-generation:
+    image: ghcr.io/ericlbuehler/mistral.rs:cuda-89-latest
+    ports:
+        - 12005:80
+    volumes:
+        - /data/hf-cache:/data:z
+    command: --isq Q4K plain -m microsoft/Phi-3-mini-128k-instruct -a phi3
+    environment:
+       - HUGGING_FACE_HUB_TOKEN=[TOKEN]
+       - KEEP_ALIVE_INTERVAL=100
+    healthcheck:
+      test: curl --fail http://localhost/health || exit 1
+      interval: 30s
+      retries: 5
+      start_period: 300s
+      timeout: 10s
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            capabilities: [gpu]
+            count: all
